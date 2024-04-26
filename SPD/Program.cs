@@ -9,6 +9,7 @@ namespace SPD
 
         private List<Item> storeInventory;
 
+        private Dictionary<ItemType, int> compareDic;
 
         public GameManager()
         {
@@ -20,6 +21,7 @@ namespace SPD
             player = new Player("Jiwon", "Programmer", 1, 10, 5, 100, 15000);
 
             inventory = new List<Item>();
+            compareDic = new Dictionary<ItemType, int>();
 
             storeInventory = new List<Item>();
             storeInventory.Add(new Item("무쇠갑옷", "튼튼한 갑옷", ItemType.ARMOR, 0, 5, 0, 500));
@@ -159,7 +161,36 @@ namespace SPD
                     InventoryMenu();
                     break;
                 default:
+                    // 같은 아이템 선택하면 장비해제로 가고 같은타입이면 기존장비 해제 후 그 장비 착용
+                    // null이면 착용, null이 아니면 키값Type 비교, 같으면 해제 후 착용, 같아도 Value Name이 같으면 장비해제 
+                    if(!compareDic.ContainsKey(inventory[KeyInput - 1].Type))
+                    {
                     inventory[KeyInput - 1].ToggleEquipStatus();
+                        compareDic.Add(inventory[KeyInput - 1].Type, KeyInput - 1);
+                    }
+                    else // 같은 자리에 장비를 끼고있다 == 선택된 장비와 타입이 같다 같은 타입이면서 다른 장비이면 바꿔끼기.
+                    {
+                        foreach (KeyValuePair<ItemType, int> dic in compareDic)  
+                        {
+                            if(!(dic.Value == KeyInput - 1)) //dic에 저장된 장비가 선택한 장비와 같은 장비인지 비교 다르면
+                            {
+                                inventory[dic.Value].ToggleEquipStatus(); // 기존장비 해제
+                                compareDic.Remove(dic.Key); // 기존장비 삭제     
+                                
+                                inventory[KeyInput - 1].ToggleEquipStatus(); //골랐던 장비 착용
+                                compareDic.Add(inventory[KeyInput - 1].Type, KeyInput - 1);
+                                break;
+                            }
+                            //같은 타입이면서 같은 장비이면 장비해제.
+                            else 
+                            {
+                                inventory[KeyInput - 1].ToggleEquipStatus();
+                                compareDic.Remove(dic.Key); // 기존장비 삭제 
+                                break; 
+                            }
+                        }
+                    }        
+
                     EquipMenu();
                     break;
             }

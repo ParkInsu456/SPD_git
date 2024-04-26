@@ -20,7 +20,7 @@ namespace SPD
         public string Name { get; }
         public string Desc { get; }
 
-        private ItemType Type;
+        public ItemType Type { get; }
 
         public int Atk { get; }
         public int Def { get; }
