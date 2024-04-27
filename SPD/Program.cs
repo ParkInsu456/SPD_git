@@ -12,6 +12,8 @@ namespace SPD
 
         private Dictionary<ItemType, int> compareDic;   // 추가요소 장비교체
 
+        private int countClear = 0;
+        private int countLevelUp = 1;
         public GameManager()
         {
             InitializeGame();
@@ -473,6 +475,17 @@ namespace SPD
             Console.WriteLine(player.Gold.ToString() + " G -> " + (player.Gold + rewardGold).ToString() + " G");
             player.Gold += rewardGold;
             Console.ResetColor();
+            countClear++;
+            if (countClear == countLevelUp)
+            {
+                Console.WriteLine("");
+                Console.WriteLine("레벨업!");
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.Write(player.Level.ToString() + " -> " + (player.Level+1).ToString() );
+                Console.ResetColor();
+                player.LevelUp();               
+            }
+
             Console.WriteLine("");
             Console.WriteLine("0. 나가기");
 

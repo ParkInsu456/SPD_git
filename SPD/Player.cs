@@ -10,9 +10,9 @@ namespace SPD
     {
         public string Name { get; }
         public string Job { get; }
-        public int Level { get; }
-        public int Atk { get; }
-        public int Def { get; }
+        public int Level { get; set; }
+        public int Atk { get; set; }
+        public int Def { get; set; }
         public int Hp { get; set; }
         public int Gold { get; set; }
         public int BonusAtk {  get; set; }
@@ -29,6 +29,13 @@ namespace SPD
             Def = def;
             Hp = hp;
             Gold = gold;
+        }
+
+        public void LevelUp()
+        {
+            Level++;
+            Atk += 1;
+            Def += 1;
         }
 
         
