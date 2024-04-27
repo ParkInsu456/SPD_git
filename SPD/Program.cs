@@ -483,7 +483,9 @@ namespace SPD
                 Console.ForegroundColor = ConsoleColor.Yellow;
                 Console.Write(player.Level.ToString() + " -> " + (player.Level+1).ToString() );
                 Console.ResetColor();
-                player.LevelUp();               
+                player.LevelUp();
+                countLevelUp++;
+                countClear = 0;
             }
 
             Console.WriteLine("");
