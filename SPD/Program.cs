@@ -8,8 +8,9 @@ namespace SPD
         private List<Item> inventory;
 
         private List<Item> storeInventory;
+        private List<Dungeon> dungeons;
 
-        private Dictionary<ItemType, int> compareDic;
+        private Dictionary<ItemType, int> compareDic;   // 추가요소 장비교체
 
         public GameManager()
         {
@@ -21,12 +22,17 @@ namespace SPD
             player = new Player("Jiwon", "Programmer", 1, 10, 5, 100, 15000);
 
             inventory = new List<Item>();
-            compareDic = new Dictionary<ItemType, int>();
+            compareDic = new Dictionary<ItemType, int>();   // 추가요소 장비교체
 
             storeInventory = new List<Item>();
             storeInventory.Add(new Item("무쇠갑옷", "튼튼한 갑옷", ItemType.ARMOR, 0, 5, 0, 500));
             storeInventory.Add(new Item("낡은 검", "낡은 검", ItemType.WEAPON, 2, 0, 0, 1000));
             storeInventory.Add(new Item("골든 헬름", "희귀한 투구", ItemType.ARMOR, 0, 9, 0, 2000));
+        
+            dungeons = new List<Dungeon>();
+            dungeons.Add(new Dungeon("쉬운 던전", 5, 5, 1000));
+            dungeons.Add(new Dungeon("보통 던전", 11, 10, 1500));
+            dungeons.Add(new Dungeon("어려운 던전", 17, 16, 2000));
         }
 
         public void StartGame()
@@ -52,10 +58,12 @@ namespace SPD
             Console.WriteLine("1. 상태보기");
             Console.WriteLine("2. 인벤토리");
             Console.WriteLine("3. 상점");
+            Console.WriteLine("4. 던전 탐색");
+            Console.WriteLine("5. 여관");
             Console.WriteLine("");
 
             // 2. 선택한 결과를 검증함
-            int choice = ConsoleUtility.PromptMenuChoice(1, 3);
+            int choice = ConsoleUtility.PromptMenuChoice(1, 5);
 
             // 3. 선택한 결과에 따라 보내줌
             switch (choice)
@@ -68,6 +76,12 @@ namespace SPD
                     break;
                 case 3:
                     StoreMenu();
+                    break;
+                case 4:
+                    DungeonMenu();
+                    break;
+                case 5:
+                    InnMenu();
                     break;
             }
             MainMenu();
@@ -86,13 +100,13 @@ namespace SPD
 
             // TODO : 능력치 강화분을 표현하도록 변경
 
-            int bonusAtk = inventory.Select(item => item.IsEquipped ? item.Atk : 0).Sum();
-            int bonusDef = inventory.Select(item => item.IsEquipped ? item.Def : 0).Sum();
-            int bonusHp = inventory.Select(item => item.IsEquipped ? item.Hp : 0).Sum();
+            player.BonusAtk = inventory.Select(item => item.IsEquipped ? item.Atk : 0).Sum();
+            player.BonusDef = inventory.Select(item => item.IsEquipped ? item.Def : 0).Sum();
+            player.BonusHp = inventory.Select(item => item.IsEquipped ? item.Hp : 0).Sum();
 
-            ConsoleUtility.PrintTextHighlights("공격력 : ", (player.Atk + bonusAtk).ToString(), bonusAtk > 0 ? $" (+{bonusAtk})" : "");
-            ConsoleUtility.PrintTextHighlights("방어력 : ", (player.Def + bonusDef).ToString(), bonusDef > 0 ? $" (+{bonusDef})" : "");
-            ConsoleUtility.PrintTextHighlights("체 력 : ", (player.Hp + bonusHp).ToString(), bonusHp > 0 ? $" (+{bonusHp})" : "");
+            ConsoleUtility.PrintTextHighlights("공격력 : ", (player.Atk + player.BonusAtk).ToString(), player.BonusAtk > 0 ? $" (+{player.BonusAtk})" : "");
+            ConsoleUtility.PrintTextHighlights("방어력 : ", (player.Def + player.BonusDef).ToString(), player.BonusDef > 0 ? $" (+{player.BonusDef})" : "");
+            ConsoleUtility.PrintTextHighlights("체 력 : ", (player.Hp + player.BonusHp).ToString(), player.BonusHp > 0 ? $" (+{player.BonusHp})" : "");
 
             ConsoleUtility.PrintTextHighlights("Gold : ", player.Gold.ToString());
             Console.WriteLine("");
@@ -160,10 +174,10 @@ namespace SPD
                 case 0:
                     InventoryMenu();
                     break;
-                default:
+                default: // 추가요소 장비교체
                     // 같은 아이템 선택하면 장비해제로 가고 같은타입이면 기존장비 해제 후 그 장비 착용
                     // null이면 착용, null이 아니면 키값Type 비교, 같으면 해제 후 착용, 같아도 Value Name이 같으면 장비해제 
-                    if(!compareDic.ContainsKey(inventory[KeyInput - 1].Type))
+                    if (!compareDic.ContainsKey(inventory[KeyInput - 1].Type))
                     {
                     inventory[KeyInput - 1].ToggleEquipStatus();
                         compareDic.Add(inventory[KeyInput - 1].Type, KeyInput - 1);
@@ -287,7 +301,7 @@ namespace SPD
             }
         }
 
-        private void SellMenu(string? prompt = null)
+        private void SellMenu(string? prompt = null) // 추가요소 상점 판매
         {
             if (prompt != null)
             {
@@ -364,14 +378,173 @@ namespace SPD
             }
         }
 
-        public class Program
+        public void DungeonMenu(string? prompt = null)
         {
-            public static void Main(string[] args)
+            if (prompt != null)
             {
-                GameManager gameManager = new GameManager();
-                gameManager.StartGame();
+                // 1초간 메시지를 띄운 다음에 다시 진행
+                Console.Clear();
+                ConsoleUtility.ShowTitle(prompt);
+                Console.Write("체력 ");
+                Console.ForegroundColor = ConsoleColor.DarkRed;                
+                Console.WriteLine(player.Hp.ToString() + " -> " + (player.Hp -(int)(player.Hp*0.5)).ToString());
+                //HP 적용
+                player.Hp -= ((int)(player.Hp * 0.5));
+                Console.ResetColor();
+                Thread.Sleep(1000);
+            }
+
+            Console.Clear();
+
+            ConsoleUtility.ShowTitle("■ 던전탐색 ■");
+            Console.WriteLine("이곳에서 던전으로 들어가기전 활동을 할 수 있습니다.");
+            Console.WriteLine("");           
+           
+            Console.WriteLine("");
+            Console.WriteLine("1. 쉬운 던전");
+            Console.WriteLine("2. 일반 던전");
+            Console.WriteLine("3. 어려운 던전");
+            Console.WriteLine("0. 나가기");
+            Console.WriteLine("");
+
+            int keyInput = ConsoleUtility.PromptMenuChoice(0, dungeons.Count);
+            Random random = new Random();
+
+            switch (keyInput)
+            {
+                case 0:
+                    MainMenu();
+                    break;
+                case 1:
+                    if (dungeons[keyInput-1].NeedDef > player.Def)
+                    {
+                        if(4 > random.Next(0,10))
+                        {
+                            DungeonMenu("던전의 강적을 만나 철수했습니다.");
+                        }
+                        else DungeonClear(keyInput);
+                    }
+                    else DungeonClear(keyInput);
+                    break;
+                case 2:
+                    if (dungeons[keyInput - 1].NeedDef > player.Def)
+                    {
+                        if (4 > random.Next(0, 10))
+                        {
+                            DungeonMenu("던전의 강적을 만나 철수했습니다.");
+                        }
+                        else DungeonClear(keyInput);
+                    }
+                    else DungeonClear(keyInput);
+                    break;
+                case 3:
+                    if (dungeons[keyInput - 1].NeedDef > player.Def)
+                    {
+                        if (4 > random.Next(0, 10))
+                        {
+                            DungeonMenu("던전의 강적을 만나 철수했습니다.");
+                        }
+                        else DungeonClear(keyInput);
+                    }
+                    else DungeonClear(keyInput);
+                    break;
+
+            }
+        }
+        public void DungeonClear(int i)
+        {
+            Console.Clear();
+              
+            ConsoleUtility.ShowTitle("■ 던전 클리어 ■");
+            Console.WriteLine($"이곳에서 던전으로 들어가기전 활동을 할 수 있습니다.");
+            Console.WriteLine("");
+            Console.WriteLine("[탐험 결과]");
+            Console.WriteLine("");
+            Random rnd = new Random();
+            Console.Write("체력 ");
+            Console.ForegroundColor = ConsoleColor.DarkRed;
+            int consumeHp = rnd.Next(20, 36) - (dungeons[i - 1].NeedDef - (player.Def + player.BonusDef));            
+            Console.WriteLine(player.Hp.ToString() + " -> " + (player.Hp - consumeHp).ToString());
+            player.Hp -= consumeHp;            
+            Console.ResetColor();
+            Console.Write("Gold ");
+            Console.ForegroundColor = ConsoleColor.DarkRed;
+            int rewardGold = (int)(dungeons[i - 1].Reward+ dungeons[i - 1].Reward * rnd.Next(player.Atk, player.Atk * 2) * 0.01);            
+            Console.WriteLine(player.Gold.ToString() + " G -> " + (player.Gold + rewardGold).ToString() + " G");
+            player.Gold += rewardGold;
+            Console.ResetColor();
+            Console.WriteLine("");
+            Console.WriteLine("0. 나가기");
+
+            switch (ConsoleUtility.PromptMenuChoice(0, 0))
+            {
+                case 0:
+                    DungeonMenu();
+                    break;               
             }
         }
 
+        public void InnMenu(string? prompt = null)
+        {
+            if (prompt != null)
+            {
+                // 1초간 메시지를 띄운 다음에 다시 진행
+                Console.Clear();
+                ConsoleUtility.ShowTitle(prompt);
+                Thread.Sleep(1000);
+            }
+
+            Console.Clear();
+
+            ConsoleUtility.ShowTitle("■ 여관 ■");
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.Write("500");
+            Console.ResetColor();            
+            Console.Write(" G 를 내면 체력을 회복할 수 있습니다.");
+            ConsoleUtility.PrintTextHighlights(" (보유 골드 : ", player.Gold.ToString(), " G)");
+            ConsoleUtility.PrintTextHighlights("현재 체력 ", player.Hp.ToString());
+
+            Console.WriteLine("1. 휴식하기");        
+            Console.WriteLine("0. 나가기");
+            Console.WriteLine("");
+
+            switch (ConsoleUtility.PromptMenuChoice(0, 1))
+            {
+                case 0:
+                    DungeonMenu();
+                    break;
+                case 1:
+                    if (player.Gold >= 500)
+                    {
+                        player.Gold -= 500;
+                        // 체력회복
+                        if (!(player.Hp >= 100))
+                        {
+                            Console.Write("체력 ");
+                            Console.ForegroundColor = ConsoleColor.DarkRed;
+                            Console.WriteLine(player.Hp.ToString() + " -> " + ( (player.Hp +50)>100? (player.Hp=100) : (player.Hp + 50)).ToString());
+                            //HP 적용
+                            player.Hp = (player.Hp + 50) > 100 ? (player.Hp = 100) : (player.Hp + 50);
+                            InnMenu("체력을 회복했습니다.");
+                        }
+                        else InnMenu("체력이 최대치입니다.");                                                
+                    }
+                    // 3 : 돈이 모자라는 경우
+                    else
+                    {
+                        InnMenu("Gold가 부족합니다.");
+                    }
+                    break;
+            }
+        }
     }
+
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            GameManager gameManager = new GameManager();
+            gameManager.StartGame();
+        }
+    }    
 }
